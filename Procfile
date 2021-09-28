@@ -1,3 +1,1 @@
-heroku ps:scale worker=1
-heroku ps:scale web=0
-worker: java -jar DiscordBot.jar
+worker: java -cp $JAVA_OPTS target/classes/:target/dependency/* com.bot.discordbot.DiscordBotApplication
