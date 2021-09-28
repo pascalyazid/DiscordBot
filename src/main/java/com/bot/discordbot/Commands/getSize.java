@@ -23,7 +23,7 @@ public class getSize extends ListenerAdapter {
                 event.getChannel().sendMessage(name + "s" + " pp " + "is " + number1 + " inches long!").queue();
             }
             else {
-                event.getChannel().sendMessage(name + "s " + "is " + number + " inches long!");
+                event.getChannel().sendMessage(name + "s " + "is " + number + " inches long!").queue();
             }
         }
     }

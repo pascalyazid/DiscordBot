@@ -54,11 +54,14 @@ public class Voice extends ListenerAdapter {
 
         if(args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "skip")) {
             if (!event.getAuthor().isBot()) {
-                AudioSourceManagers.registerRemoteSources(playerManager);
-                AudioSourceManagers.registerLocalSource(playerManager);
+                AudioManager audioManager = event.getGuild().getAudioManager();
+                if (audioManager.isConnected()) {
+                    AudioSourceManagers.registerRemoteSources(playerManager);
+                    AudioSourceManagers.registerLocalSource(playerManager);
 
-                skipTrack(event.getChannel());
+                    skipTrack(event.getChannel());
 
+                }
             }
         }
 
@@ -78,6 +81,8 @@ public class Voice extends ListenerAdapter {
         }
 
         if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "stop")) {
+            AudioManager audioManager = event.getGuild().getAudioManager();
+            if(audioManager.isConnected()) {
             if (!stopped) {
                 AudioSourceManagers.registerRemoteSources(playerManager);
                 AudioSourceManagers.registerLocalSource(playerManager);
@@ -85,6 +90,7 @@ public class Voice extends ListenerAdapter {
                 stop(event.getChannel());
                 stopped = true;
             }
+        }
         }
     }
 
@@ -161,17 +167,15 @@ public class Voice extends ListenerAdapter {
     }
 
     private void skipTrack(TextChannel channel) {
+
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.nextTrack();
-
+        if(stopped) {
+            musicManager.scheduler.continueTrack();
+        }
         channel.sendMessage("Skipped to next track.").queue();
     }
-
-    //public void currentTrack(TextChannel channel, AudioTrack track) {
-      //  GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-    //    musicManager.scheduler.onTrackStart(, track);
-  //  }
-
+    
     private static void connectToFirstVoiceChannel(AudioManager audioManager) {
         if (!audioManager.isConnected() && !audioManager.isAttemptingToConnect()) {
             for (VoiceChannel voiceChannel : audioManager.getGuild().getVoiceChannels()) {
