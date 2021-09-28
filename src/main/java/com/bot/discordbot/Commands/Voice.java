@@ -65,12 +65,12 @@ public class Voice extends ListenerAdapter {
         if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "play")) {
             AudioSourceManagers.registerRemoteSources(playerManager);
             AudioSourceManagers.registerLocalSource(playerManager);
-            if(args[1] != null){
+            if(args.length == 2){
                 String identifier = args[1];
                 loadAndPlay(event.getChannel(), identifier);
                 stopped = false;
             }
-            if(stopped == true) {
+            if(stopped) {
                 continueTrack(event.getChannel());
                 stopped = false;
             }
@@ -78,7 +78,7 @@ public class Voice extends ListenerAdapter {
         }
 
         if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "stop")) {
-            if (stopped == false) {
+            if (!stopped) {
                 AudioSourceManagers.registerRemoteSources(playerManager);
                 AudioSourceManagers.registerLocalSource(playerManager);
 
