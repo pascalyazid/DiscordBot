@@ -2,18 +2,23 @@ package com.bot.discordbot.Commands;
 
 
 import com.bot.discordbot.Audio.GuildMusicManager;
+import com.bot.discordbot.Data.JSONHandler;
 import com.bot.discordbot.DiscordBotApplication;
 import com.sedmelluq.discord.lavaplayer.player.*;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import io.opencensus.internal.StringUtils;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.VoiceChannel;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
+
+import java.io.IOException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +30,7 @@ public class Voice extends ListenerAdapter {
 
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
-
+        JSONHandler jsonHandler = new JSONHandler();
 
         if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "join")) {
             if (!event.getAuthor().isBot()) {
@@ -65,19 +70,51 @@ public class Voice extends ListenerAdapter {
             }
         }
 
-        if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "play")) {
+        if(args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "clear")) {
+            if (!event.getAuthor().isBot()) {
+                AudioManager audioManager = event.getGuild().getAudioManager();
+                if (audioManager.isConnected()) {
+                    AudioSourceManagers.registerRemoteSources(playerManager);
+                    AudioSourceManagers.registerLocalSource(playerManager);
+
+                    clearQueue(event.getChannel());
+
+                }
+            }
+        }
+
+        if(args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "play") && stopped && args.length == 1) {
             AudioSourceManagers.registerRemoteSources(playerManager);
             AudioSourceManagers.registerLocalSource(playerManager);
-            if(args.length == 2){
-                String identifier = args[1];
-                loadAndPlay(event.getChannel(), identifier);
-                stopped = false;
-            }
-            if(stopped) {
-                continueTrack(event.getChannel());
-                stopped = false;
-            }
+            continueTrack(event.getChannel());
+            stopped = false;
+        }else {
 
+            if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "play")) {
+                AudioSourceManagers.registerRemoteSources(playerManager);
+                AudioSourceManagers.registerLocalSource(playerManager);
+
+                String params = "";
+                for (int i = 1; i < args.length; i++) {
+                    params += args[i];
+                }
+                try {
+                    URL url = new URL(args[1]);
+                    if (args.length == 2 && args[1].contains("https")) {
+                        String identifier = args[1];
+                        loadAndPlay(event.getChannel(), identifier);
+                        stopped = false;
+                    }
+                } catch (Exception e) {
+
+                    try {
+                        loadAndPlay(event.getChannel(), jsonHandler.searchVideo(params));
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
+                }
+
+            }
         }
 
         if (args[0].equalsIgnoreCase(DiscordBotApplication.prefix + "stop")) {
@@ -127,6 +164,10 @@ public class Voice extends ListenerAdapter {
                     firstTrack = playlist.getTracks().get(0);
                 }
 
+                for (int i = 0; i < playlist.getTracks().size(); i++) {
+
+                }
+
                 channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
 
                 play(channel.getGuild(), musicManager, firstTrack);
@@ -145,9 +186,20 @@ public class Voice extends ListenerAdapter {
     }
 
 
+    private void clearQueue(TextChannel channel) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        musicManager.player.destroy();
+        channel.sendMessage("Queue cleared.").queue();
+
+    }
+
+
     private void play(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
         connectToFirstVoiceChannel(guild.getAudioManager());
 
+        musicManager.scheduler.queue(track);
+    }
+    private void queue(Guild guild, GuildMusicManager musicManager, AudioTrack track) {
         musicManager.scheduler.queue(track);
     }
 

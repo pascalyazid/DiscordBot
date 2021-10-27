@@ -24,7 +24,7 @@ public class DiscordBotApplication extends ListenerAdapter {
     public static void main(String[] args) throws GeneralSecurityException, IllegalArgumentException{
         messages = new Vector<>();
         messages = JSONHandler.readMessages();
-        JDA jda = JDABuilder.createDefault("Nzc5MzAzMzA1NTIwMjE4MTIz.X7ekwg.RaKqBEOVOFTAaBqxx0_LAZg3l9E").build();
+        JDA jda = JDABuilder.createDefault("Fill in your Bot Token here").build();
 
         jda.addEventListener(new Commands());
         jda.addEventListener(new getSize());

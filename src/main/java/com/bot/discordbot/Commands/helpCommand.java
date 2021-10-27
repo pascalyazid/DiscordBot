@@ -38,6 +38,10 @@ public class helpCommand extends ListenerAdapter {
         embedBuilder.addField("!join", "Bot joins your current voice channel", false);
         embedBuilder.addField("!dc", "Bot disconnects form current voice channel", false);
         embedBuilder.addField("!play [url]", "Play a Youtube video / mp3 file", false);
+        embedBuilder.addField("!play [name]", "Search a video on Youtube and play the most relevant one", false);
+        embedBuilder.addField("!play", "Continue the current audio", false);
+        embedBuilder.addField("!skip", "Skip the current audio", false);
+        embedBuilder.addField("!stop", "Stop the current audio", false);
         embedBuilder.setColor(Color.blue);
         embedBuilder.build();
         return embedBuilder.build();

@@ -1,6 +1,7 @@
 package com.bot.discordbot.Data;
 
 import com.bot.discordbot.MessageCounter.MessageServer;
+import com.bot.discordbot.Test;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.auth.oauth2.Credential;
@@ -14,29 +15,33 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchListResponse;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.json.JSONTokener;
+import org.jsoup.nodes.Document;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Vector;
+import java.util.*;
 
 public class JSONHandler {
 
     private static final Collection<String> SCOPES =
             Arrays.asList("https://www.googleapis.com/auth/youtube.force-ssl");
 
-    private static final String APPLICATION_NAME = "API code samples";
-    private static final JacksonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+
     public static Vector<MessageServer> readMessages(){
 
         Vector<MessageServer> map = new Vector<>();
 
         try {
 
-            URL url = new URL("https://api.npoint.io/7f52a96761f6502449cf");
+            URL url = new URL("Fill in your JSON-Hosting URL here");
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -57,13 +62,13 @@ public class JSONHandler {
     public static void saveMessages(Vector<MessageServer> map) {
         try {
 
-            URL url = new URL ("https://api.npoint.io/7f52a96761f6502449cf");
-            HttpURLConnection con = (HttpURLConnection)url.openConnection();
+            URL url = new URL ("Fill in your JSON-Hosting address here");
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
-            con.setRequestMethod("POST");
-            con.setRequestProperty("Content-Type", "application/json; utf-8");
-            con.setRequestProperty("Accept", "application/json");
-            con.setDoOutput(true);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; utf-8");
+            connection.setRequestProperty("Accept", "application/json");
+            connection.setDoOutput(true);
 
 
 
@@ -72,13 +77,13 @@ public class JSONHandler {
 
 
 
-            try(OutputStream os = con.getOutputStream()) {
+            try(OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
                 os.write(input);
             }
 
             try(BufferedReader br = new BufferedReader(
-                    new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8))) {
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
                 StringBuilder response = new StringBuilder();
                 String responseLine = null;
                 while ((responseLine = br.readLine()) != null) {
@@ -91,64 +96,30 @@ public class JSONHandler {
         }
     }
 
-    /**
-     * Create an authorized Credential object.
-     *
-     * @return an authorized Credential object.
-     */
-    public static Credential authorize(final NetHttpTransport httpTransport) throws IOException {
-                Credential credential;
+    public String searchVideo(String keyword) throws IOException {
+        keyword = keyword.replace(" ", "+");
+        URL url = new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=" + keyword + "&Fill in your Youtube Search API-Key here");
+        InputStream inputStream = new URL(url.toString()).openStream();
 
-            try {
-                URL url = new URL("https://api.npoint.io/079935ecc50ebbe20fff");
-
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-                connection.setRequestProperty("accept", "application/json");
-
-                InputStream in = connection.getInputStream();
-                GoogleClientSecrets clientSecrets =
-                        GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-                // Build flow and trigger user authorization request.
-                GoogleAuthorizationCodeFlow flow =
-                        new GoogleAuthorizationCodeFlow.Builder(httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
-                                .build();
-                Credential credential1 =
-                        new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
-
-                credential = credential1;
-
-
-
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-                credential = null;
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+            StringBuilder sb = new StringBuilder();
+            int counter;
+            while((counter = reader.read()) != -1) {
+                sb.append((char) counter);
             }
+            JSONObject jsonObject = new JSONObject(sb.toString());
+            String idObj = jsonObject.getJSONArray("items").get(0).toString();
+            JSONObject jsonObject1 = new JSONObject(idObj);
+            String id = jsonObject1.getJSONObject("id").getString("videoId");
+            System.out.println(id);
+            String videoURL = "https://www.youtube.com/watch?v=" + id;
+            System.out.println(videoURL);
+            return  videoURL;
 
-        // Load client secrets.
-        return credential;
-    }
-
-    public static void search(String identifier) throws IOException, GeneralSecurityException {
-        YouTube youtubeService = JSONHandler.getService();
-
-        YouTube.Search.List request = youtubeService.search()
-                .list(identifier);
-        SearchListResponse response = request.execute();
-        System.out.println(response);
-    }
-
-    /**
-     * Build and return an authorized API client service.
-     *
-     * @return an authorized API client service
-     * @throws GeneralSecurityException, IOException
-     */
-    public static YouTube getService() throws GeneralSecurityException, IOException {
-        final NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        Credential credential = authorize(httpTransport);
-        return new YouTube.Builder(httpTransport, JSON_FACTORY, credential)
-                .setApplicationName(APPLICATION_NAME)
-                .build();
+        } catch (Exception e) {
+            //e.printStackTrace();
+            return keyword;
+        }
     }
 }
