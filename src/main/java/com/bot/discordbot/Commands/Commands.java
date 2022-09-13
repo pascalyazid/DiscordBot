@@ -92,4 +92,14 @@ public class Commands extends ListenerAdapter {
     }
 
 
+    public static MessageEmbed SongEmbed(String id, String title, String url) {
+        EmbedBuilder embedBuilder = new EmbedBuilder();
+        embedBuilder.setTitle("Adding to queue");
+        embedBuilder.addField(title, "", false);
+        embedBuilder.setColor(Color.blue);
+        embedBuilder.setImage("https://i3.ytimg.com/vi/" + id + "/maxresdefault.jpg");
+        embedBuilder.build();
+        return embedBuilder.build();
+    }
+
 }

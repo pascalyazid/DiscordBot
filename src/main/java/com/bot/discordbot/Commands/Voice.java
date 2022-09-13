@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +28,8 @@ public class Voice extends ListenerAdapter {
     private Map<Long, GuildMusicManager> musicManagers = new HashMap<>();
     AudioPlayerManager playerManager = new DefaultAudioPlayerManager();
     boolean stopped = false;
+    String videoID = " ";
+    String title = " ";
 
     public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         String[] args = event.getMessage().getContentRaw().split("\\s+");
@@ -108,7 +111,12 @@ public class Voice extends ListenerAdapter {
                 } catch (Exception e) {
 
                     try {
-                        loadAndPlay(event.getChannel(), jsonHandler.searchVideo(params));
+                        String[] data = jsonHandler.searchVideo(params);
+                        this.videoID = " ";
+                        this.title = " ";
+                        loadAndPlay(event.getChannel(), data[0]);
+                        this.videoID = data[1];
+                        this.title = data[2];
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
@@ -151,8 +159,8 @@ public class Voice extends ListenerAdapter {
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
-
+                //channel.sendMessage("Adding to queue " + track.getInfo().title).queue();
+                channel.sendMessage(Commands.SongEmbed(videoID, title, trackUrl)).queue();
                 play(channel.getGuild(), musicManager, track);
             }
 
@@ -168,8 +176,8 @@ public class Voice extends ListenerAdapter {
 
                 }
 
-                channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
-
+                //channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")").queue();
+                channel.sendMessage(Commands.SongEmbed(videoID, title, trackUrl)).queue();
                 play(channel.getGuild(), musicManager, firstTrack);
             }
 

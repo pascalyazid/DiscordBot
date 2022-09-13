@@ -22,6 +22,7 @@ import org.json.JSONTokener;
 import org.jsoup.nodes.Document;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -41,7 +42,7 @@ public class JSONHandler {
 
         try {
 
-            URL url = new URL("Fill in your JSON-Hosting URL here");
+            URL url = new URL("[Your JSON-URL here]");
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
@@ -62,7 +63,7 @@ public class JSONHandler {
     public static void saveMessages(Vector<MessageServer> map) {
         try {
 
-            URL url = new URL ("Fill in your JSON-Hosting address here");
+            URL url = new URL ("[Your JSON-URL here]");
             HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 
             connection.setRequestMethod("POST");
@@ -96,9 +97,10 @@ public class JSONHandler {
         }
     }
 
-    public String searchVideo(String keyword) throws IOException {
+    public  String[] searchVideo(String keyword) throws IOException {
+        String[] data = new String[3];
         keyword = keyword.replace(" ", "+");
-        URL url = new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=" + keyword + "&Fill in your Youtube Search API-Key here");
+        URL url = new URL("https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&order=relevance&q=" + keyword + "&[Your API key here]");
         InputStream inputStream = new URL(url.toString()).openStream();
 
         try {
@@ -112,14 +114,18 @@ public class JSONHandler {
             String idObj = jsonObject.getJSONArray("items").get(0).toString();
             JSONObject jsonObject1 = new JSONObject(idObj);
             String id = jsonObject1.getJSONObject("id").getString("videoId");
+            String title = jsonObject1.getJSONObject("snippet").getString("title");
             System.out.println(id);
             String videoURL = "https://www.youtube.com/watch?v=" + id;
             System.out.println(videoURL);
-            return  videoURL;
+            data[0] = videoURL;
+            data[1] = id;
+            data[2] = title;
+            return data;
 
         } catch (Exception e) {
             //e.printStackTrace();
-            return keyword;
+            return data;
         }
     }
 }
