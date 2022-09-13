@@ -1,5 +1,6 @@
 # DiscordBot
 A java Discord bot
+
 Note:
 To make the bot work, you have to change some stuff in the code:
 1. Put your own Discord Bot Token (You can get it from the Discord Developer Portal) in the DiscordBotApplication.java class on line 33.
